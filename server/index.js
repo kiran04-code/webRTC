@@ -18,20 +18,25 @@ const io = new Server(server,{
  }
 })
 const emailToSocketIdMapping = new Map()
-io.on("connection",(Socket)=>{
-    console.log("User is Connted to Socket.io:",Socket.id)
-  Socket.on("Room:join",data=>{
+const socketToEmailMapping = new Map()
+io.on("connection",(socket)=>{
+    console.log("User is Connted to Socket.io:",socket.id)
+    socket.on("Room:join",data=>{
     const {emailId,roomId} = data
-    emailToSocketIdMapping.set(emailId,Socket.id)
+    emailToSocketIdMapping.set(emailId,socket.id)
+    socketToEmailMapping.set(socket.id,emailId)
     console.log(`${emailId} join this Room ${roomId}`)
-    Socket.join(roomId)
-    Socket.emit("joined-userstherRoom",{roomId})
-    Socket.broadcast.to(roomId).emit("joined-user",{emailId})
+    socket.join(roomId)
+    socket.emit("joined-userstherRoom",{roomId})
+    socket.broadcast.to(roomId).emit("joined-user",{emailId,roomId})
   })
 
+socket.on("user:call",data=>{
+    const {to,offer} = data
+    io.to(to).emit("incomming:call'",{from:socket.id,offer})
+})
 
-
-    Socket.on("disconnect",()=>{
+    socket.on("disconnect",()=>{
         console.log("User is DissConnected")
     })
 })
