@@ -32,10 +32,17 @@ io.on("connection",(socket)=>{
   })
 
 socket.on("user:call",data=>{
-    const {to,offer} = data
-    io.to(to).emit("incomming:call'",{from:socket.id,offer})
+      const {email,offer} = data
+      const fromEmail = socketToEmailMapping.get(socket.id)
+      const socketId = emailToSocketIdMapping.get(email)
+      socket.to(socketId).emit("incomming:call",{from:fromEmail,offer})
 })
-
+socket.on("call:accepte",data=>{
+    const {to,answer} = data
+       const fromEmail = socketToEmailMapping.get(socket.id)
+      const socketId = emailToSocketIdMapping.get(to)
+      socket.to(socketId).emit("call:accepteD",{from:fromEmail,answer})
+})
     socket.on("disconnect",()=>{
         console.log("User is DissConnected")
     })
